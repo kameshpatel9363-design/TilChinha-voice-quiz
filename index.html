@@ -1,276 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    :root { font-family: Arial, sans-serif; color: #1f2937; background: #f7f8fb; }
-    body { margin: 0; padding: 24px; }
-    .card { max-width: 760px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
-    h1 { margin-top: 0; }
-    .muted { color: #6b7280; }
-    label { display: block; font-weight: 700; margin: 16px 0 6px; }
-    input, textarea, select { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 10px; padding: 11px; font-size: 16px; }
-    textarea { min-height: 110px; resize: vertical; }
-    .prompt { background: #f3f4f6; border-radius: 12px; padding: 16px; font-size: 18px; line-height: 1.55; }
-    .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-    button { border: 0; border-radius: 10px; padding: 11px 16px; font-size: 15px; cursor: pointer; }
-    button.primary { background: #2563eb; color: white; }
-    button.stop { background: #dc2626; color: white; }
-    button.secondary { background: #e5e7eb; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    #status { margin-top: 12px; font-weight: 700; }
-    #referenceBox, #reviewBox { display: none; margin-top: 22px; }
-    .reference { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 14px; border-radius: 8px; white-space: pre-wrap; line-height: 1.55; }
-    audio { width: 100%; margin-top: 14px; }
-    .success { color: #15803d; }
-    .error { color: #b91c1c; }
-    .scoreRow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 600px) { .scoreRow { grid-template-columns: 1fr; } body { padding: 10px; } .card { padding: 18px; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gujarati Voice Quiz</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#1f2937;background:#f7f8fb}
+body{margin:0;padding:24px} .card{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+h1{margin-top:0} .muted{color:#6b7280} label{display:block;font-weight:700;margin:16px 0 6px}
+input,textarea,select{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:11px;font-size:16px}
+textarea{min-height:110px} .prompt{background:#f3f4f6;border-radius:12px;padding:16px;font-size:18px;line-height:1.55}
+.buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px} button{border:0;border-radius:10px;padding:11px 16px;font-size:15px;cursor:pointer}
+.primary{background:#2563eb;color:#fff} .stop{background:#dc2626;color:#fff} .secondary{background:#e5e7eb} button:disabled{opacity:.5}
+#status{margin-top:12px;font-weight:700} #referenceBox,#reviewBox{display:none;margin-top:22px}
+.reference{background:#fff7ed;border-left:4px solid #f59e0b;padding:14px;border-radius:8px;white-space:pre-wrap;line-height:1.55}
+audio{width:100%;margin-top:14px} .success{color:#15803d} .error{color:#b91c1c} .scoreRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.scoreRow{grid-template-columns:1fr}body{padding:10px}.card{padding:18px}button{min-height:48px;font-size:16px}}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>Gujarati Voice Quiz</h1>
-    <p class="muted">Answer naturally in Gujarati. After you stop recording, your transcript and the reference answer will appear so you can score yourself.</p>
-
-    <label for="name">Your name</label>
-    <input id="name" autocomplete="name" placeholder="Enter your name">
-
-    <label for="questionSelect">Question</label>
-    <select id="questionSelect"></select>
-
-    <label>Question / Prompt</label>
-    <div id="prompt" class="prompt">Loading questions…</div>
-
-    <div class="buttons">
-      <button id="startBtn" class="primary" onclick="startRecording()">🎙 Start Recording</button>
-      <button id="stopBtn" class="stop" onclick="stopRecording()" disabled>⏹ Stop</button>
-    </div>
-
-    <div id="status" class="muted"></div>
-    <audio id="player" controls style="display:none"></audio>
-
-    <div id="reviewBox">
-      <label for="transcript">Your transcript</label>
-      <textarea id="transcript" placeholder="Gujarati transcript will appear here. You may correct transcription mistakes before submitting."></textarea>
-      <p class="muted">If speech recognition made a spelling mistake, correct the transcript before you score yourself.</p>
-    </div>
-
-    <div id="referenceBox">
-      <label>Reference answer</label>
-      <div id="reference" class="reference"></div>
-
-      <div class="scoreRow">
-        <div>
-          <label for="score">Your self-score</label>
-          <select id="score">
-            <option value="">Choose…</option>
-            <option value="5/5">5/5 — Fully correct</option>
-            <option value="4/5">4/5 — Mostly correct</option>
-            <option value="3/5">3/5 — Partly correct</option>
-            <option value="2/5">2/5 — Some correct ideas</option>
-            <option value="1/5">1/5 — Needs improvement</option>
-          </select>
-        </div>
-        <div>
-          <label for="notes">Notes (optional)</label>
-          <input id="notes" placeholder="What did you miss?">
-        </div>
-      </div>
-
-      <div class="buttons">
-        <button id="submitBtn" class="primary" onclick="submitResponse()">Submit Response</button>
-        <button class="secondary" onclick="resetForQuestion()">Record Again</button>
-      </div>
-    </div>
-  </div>
-
+<div class="card">
+<h1>Gujarati Voice Quiz</h1>
+<p class="muted">Answer naturally in Gujarati. After you stop recording, review your transcript and compare it with the reference answer.</p>
+<label>Your name</label><input id="name" placeholder="Enter your name">
+<label>Question</label><select id="questionSelect"></select>
+<label>Question / Prompt</label><div id="prompt" class="prompt">Loading questions…</div>
+<div class="buttons"><button id="startBtn" class="primary" onclick="startRecording()">🎙 Start Recording</button><button id="stopBtn" class="stop" onclick="stopRecording()" disabled>⏹ Stop</button></div>
+<div id="status" class="muted"></div><audio id="player" controls style="display:none"></audio>
+<div id="reviewBox"><label>Your transcript</label><textarea id="transcript" placeholder="Gujarati transcript will appear here."></textarea><p class="muted">If automatic transcription is unavailable, type/correct it manually.</p></div>
+<div id="referenceBox"><label>Reference answer</label><div id="reference" class="reference"></div>
+<div class="scoreRow"><div><label>Your self-score</label><select id="score"><option value="">Choose…</option><option>5/5</option><option>4/5</option><option>3/5</option><option>2/5</option><option>1/5</option></select></div>
+<div><label>Notes (optional)</label><input id="notes"></div></div>
+<div class="buttons"><button id="submitBtn" class="primary" onclick="submitResponse()">Submit Response</button><button class="secondary" onclick="resetForQuestion()">Record Again</button></div>
+</div></div>
 <script>
-  let questions = [];
-  let mediaRecorder;
-  let audioChunks = [];
-  let audioBlob = null;
-  let recognition = null;
-  let finalTranscript = '';
+const API_URL="https://script.google.com/macros/s/AKfycbwsG-sGDUR8PfkctsFbD374GOK-06gqg7ToK_VrzmXdbHSowCAJ7rQKv33G7fYbgE983g/exec";
+let questions=[],mediaRecorder,audioChunks=[],audioBlob=null,recognition=null,finalTranscript='';
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  google.script.run
-    .withSuccessHandler(loadQuestions)
-    .withFailureHandler(showError)
-    .getQuestions();
-
-  function loadQuestions(items) {
-    questions = items || [];
-    const select = document.getElementById('questionSelect');
-    select.innerHTML = '';
-    questions.forEach((q, i) => {
-      const opt = document.createElement('option');
-      opt.value = q.id;
-      opt.textContent = `${q.id} — ${q.prompt.substring(0, 55)}`;
-      select.appendChild(opt);
-    });
-    select.onchange = showSelectedQuestion;
-    showSelectedQuestion();
+function loadQuestionsFromApi(){
+ const s=document.createElement('script');
+ s.src=API_URL+'?action=questions&callback=receiveQuestions&_='+Date.now();
+ s.onerror=()=>showError('Could not load questions from Google Sheets.');
+ document.body.appendChild(s);
+}
+function receiveQuestions(p){if(!p||!p.success)return showError(p?.error||'Could not load questions.');loadQuestions(p.questions||[])}
+function loadQuestions(items){
+ questions=items;const sel=document.getElementById('questionSelect');sel.innerHTML='';
+ if(!items.length){document.getElementById('prompt').textContent='No active questions found.';return}
+ items.forEach(q=>{const o=document.createElement('option');o.value=q.id;o.textContent=q.id+' — '+q.prompt.substring(0,55);sel.appendChild(o)});
+ sel.onchange=showSelectedQuestion;showSelectedQuestion();
+}
+function currentQuestion(){const id=document.getElementById('questionSelect').value;return questions.find(q=>q.id===id)||questions[0]}
+function showSelectedQuestion(){const q=currentQuestion();document.getElementById('prompt').textContent=q?q.prompt:'No active questions found.';resetForQuestion()}
+async function startRecording(){
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  audioChunks=[];audioBlob=null;finalTranscript='';document.getElementById('transcript').value='';
+  mediaRecorder=new MediaRecorder(stream);
+  mediaRecorder.ondataavailable=e=>{if(e.data.size)audioChunks.push(e.data)};
+  mediaRecorder.onstop=()=>{audioBlob=new Blob(audioChunks,{type:mediaRecorder.mimeType||'audio/webm'});player.src=URL.createObjectURL(audioBlob);player.style.display='block';stream.getTracks().forEach(t=>t.stop());revealReview()};
+  mediaRecorder.start();
+  if(SpeechRecognition){
+   recognition=new SpeechRecognition();recognition.lang='gu-IN';recognition.continuous=true;recognition.interimResults=true;
+   recognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=t+' ';else interim+=t}document.getElementById('transcript').value=(finalTranscript+interim).trim()};
+   try{recognition.start()}catch(e){}
   }
-
-  function currentQuestion() {
-    const id = document.getElementById('questionSelect').value;
-    return questions.find(q => q.id === id) || questions[0];
-  }
-
-  function showSelectedQuestion() {
-    const q = currentQuestion();
-    document.getElementById('prompt').textContent = q ? q.prompt : 'No active questions found.';
-    resetForQuestion();
-  }
-
-  async function startRecording() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      return setStatus('This browser does not support microphone recording.', true);
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunks = [];
-      audioBlob = null;
-      finalTranscript = '';
-      document.getElementById('transcript').value = '';
-
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        const player = document.getElementById('player');
-        player.src = URL.createObjectURL(audioBlob);
-        player.style.display = 'block';
-        stream.getTracks().forEach(track => track.stop());
-        revealReview();
-      };
-      mediaRecorder.start();
-
-      if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'gu-IN';
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.onresult = event => {
-          let interim = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const text = event.results[i][0].transcript;
-            if (event.results[i].isFinal) finalTranscript += text + ' ';
-            else interim += text;
-          }
-          document.getElementById('transcript').value = (finalTranscript + interim).trim();
-        };
-        recognition.onerror = () => {
-          setStatus('Recording is continuing, but automatic Gujarati transcription may not be available in this browser.', false);
-        };
-        try { recognition.start(); } catch (e) {}
-      } else {
-        setStatus('Recording started. This browser does not provide built-in speech transcription; you can type/correct the transcript after stopping.', false);
-      }
-
-      document.getElementById('startBtn').disabled = true;
-      document.getElementById('stopBtn').disabled = false;
-      document.getElementById('reviewBox').style.display = 'block';
-      document.getElementById('referenceBox').style.display = 'none';
-      setStatus('Recording… speak in Gujarati.', false);
-    } catch (err) {
-      setStatus('Microphone access was not granted. Please allow microphone permission and try again.', true);
-    }
-  }
-
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    if (recognition) {
-      try { recognition.stop(); } catch (e) {}
-    }
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    setStatus('Recording stopped. Review your transcript and compare it with the reference answer.', false);
-  }
-
-  function revealReview() {
-    document.getElementById('reviewBox').style.display = 'block';
-    document.getElementById('referenceBox').style.display = 'block';
-    const q = currentQuestion();
-    document.getElementById('reference').textContent = q ? q.reference : '';
-  }
-
-  function resetForQuestion() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      try { mediaRecorder.stop(); } catch (e) {}
-    }
-    if (recognition) {
-      try { recognition.stop(); } catch (e) {}
-    }
-    audioChunks = [];
-    audioBlob = null;
-    finalTranscript = '';
-    document.getElementById('player').style.display = 'none';
-    document.getElementById('player').removeAttribute('src');
-    document.getElementById('transcript').value = '';
-    document.getElementById('score').value = '';
-    document.getElementById('notes').value = '';
-    document.getElementById('reviewBox').style.display = 'none';
-    document.getElementById('referenceBox').style.display = 'none';
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    setStatus('', false);
-  }
-
-  function submitResponse() {
-    const name = document.getElementById('name').value.trim();
-    const q = currentQuestion();
-    const transcript = document.getElementById('transcript').value.trim();
-    const score = document.getElementById('score').value;
-    const notes = document.getElementById('notes').value.trim();
-
-    if (!name) return setStatus('Please enter your name.', true);
-    if (!audioBlob) return setStatus('Please make a recording first.', true);
-    if (!score) return setStatus('Please choose your self-score.', true);
-
-    document.getElementById('submitBtn').disabled = true;
-    setStatus('Saving your recording and response…', false);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result.split(',')[1];
-      google.script.run
-        .withSuccessHandler(() => {
-          setStatus('Saved successfully.', false, true);
-          document.getElementById('submitBtn').disabled = false;
-        })
-        .withFailureHandler(err => {
-          document.getElementById('submitBtn').disabled = false;
-          showError(err);
-        })
-        .saveResponse({
-          name,
-          questionId: q.id,
-          transcript,
-          score,
-          notes,
-          audioBase64: base64,
-          mimeType: audioBlob.type || 'audio/webm'
-        });
-    };
-    reader.readAsDataURL(audioBlob);
-  }
-
-  function setStatus(message, isError, isSuccess) {
-    const el = document.getElementById('status');
-    el.textContent = message || '';
-    el.className = isError ? 'error' : (isSuccess ? 'success' : 'muted');
-  }
-
-  function showError(err) {
-    const msg = err && err.message ? err.message : String(err || 'Something went wrong.');
-    setStatus(msg, true);
-  }
+  startBtn.disabled=true;stopBtn.disabled=false;reviewBox.style.display='block';referenceBox.style.display='none';setStatus('Recording… speak in Gujarati.');
+ }catch(e){setStatus('Microphone access was not granted.',true)}
+}
+function stopRecording(){if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();if(recognition)try{recognition.stop()}catch(e){};startBtn.disabled=false;stopBtn.disabled=true;setStatus('Recording stopped. Review your transcript and reference answer.')}
+function revealReview(){reviewBox.style.display='block';referenceBox.style.display='block';const q=currentQuestion();reference.textContent=q?q.reference:''}
+function resetForQuestion(){audioChunks=[];audioBlob=null;finalTranscript='';player.style.display='none';player.removeAttribute('src');transcript.value='';score.value='';notes.value='';reviewBox.style.display='none';referenceBox.style.display='none';startBtn.disabled=false;stopBtn.disabled=true;setStatus('')}
+async function submitResponse(){
+ const q=currentQuestion(),name=document.getElementById('name').value.trim(),t=transcript.value.trim(),sc=score.value,n=notes.value.trim();
+ if(!name)return setStatus('Please enter your name.',true);if(!q)return setStatus('No question selected.',true);if(!audioBlob)return setStatus('Please make a recording first.',true);if(!sc)return setStatus('Please choose your self-score.',true);
+ submitBtn.disabled=true;setStatus('Saving your response…');
+ const body=new URLSearchParams({name,questionId:q.id,transcript:t,score:sc,notes:n});
+ try{await fetch(API_URL,{method:'POST',mode:'no-cors',body});setStatus('Response submitted successfully.',false,true)}catch(e){setStatus('Could not submit response.',true)}finally{submitBtn.disabled=false}
+}
+function setStatus(m,e=false,s=false){status.textContent=m||'';status.className=e?'error':(s?'success':'muted')}
+function showError(e){setStatus(e?.message||String(e),true)}
+loadQuestionsFromApi();
 </script>
 </body>
 </html>
